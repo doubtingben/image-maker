@@ -14,9 +14,13 @@ Example Usage
 =============
 
 Build Debian 7 Vagrant Box (default)
-```packer build debian7-packer.json
+
+```
+packer build debian7-packer.json
 ```
 
 Resulting image will be at
-```builds/mm-debian7-packer.box
+
+```
+builds/mm-debian7-packer.box
 ```
