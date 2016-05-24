@@ -1,0 +1,75 @@
+{
+    "variables": {
+        "ssh_name": "vagrant",
+        "ssh_pass": "vagrant",
+        "hostname": "mm-debian8"
+    },
+
+    "push": {
+	"name": "MediaMath-PLOPS/debian-jessie-amd64",
+	"token": "{{user 'atlas_token'}}"
+    },
+
+    "builders": [{
+        "type": "virtualbox-iso",
+        "guest_os_type": "Debian_64",
+
+        "vboxmanage": [
+            ["modifyvm", "{{.Name}}", "--vram", "32"]
+        ],
+
+	"output_directory" : "output/mm-debian8-packer",
+
+        "disk_size" : 10000,
+
+        "iso_url": "http://cdimage.debian.org/debian-cd/8.4.0/amd64/iso-cd/debian-8.4.0-amd64-netinst.iso",
+        "iso_checksum": "e51200021d0356f6dc84e2307218c56230c7f539634be6ffb243971e93b9d37fc63c7cec9ba58fcf0f970a89733f86d8c71e4b18e5045351536cc36aef4f261b",
+        "iso_checksum_type": "sha512",
+        "guest_additions_mode": "attach",
+        "guest_additions_url": "http://download.virtualbox.org/virtualbox/5.0.20/VBoxGuestAdditions_5.0.20.iso",
+        "guest_additions_sha256": "6fbb59fd22e5f1b287a8a2b623604f0849b702a4ac737b57833f7cec006f01e6",
+        "headless": true,
+
+        "http_directory" : "preseed",
+        "http_port_min" : 9001,
+        "http_port_max" : 9001,
+
+        "ssh_username": "{{user `ssh_name`}}",
+        "ssh_password": "{{user `ssh_pass`}}",
+        "ssh_wait_timeout": "20m",
+
+        "shutdown_command": "echo {{user `ssh_pass`}} | sudo -S shutdown -h -P now",
+
+        "boot_command": [
+          "<esc><wait>",
+          "install <wait>",
+          "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/debian8_64.cfg <wait>",
+          "debian-installer=en_US <wait>",
+          "auto <wait>",
+          "locale=en_US <wait>",
+          "kbd-chooser/method=us <wait>",
+          "netcfg/get_hostname={{ .Name }} <wait>",
+          "netcfg/get_domain=vagrantup.com <wait>",
+          "fb=false <wait>",
+          "debconf/frontend=noninteractive <wait>",
+          "console-setup/ask_detect=false <wait>",
+          "console-keymaps-at/keymap=us <wait>",
+          "keyboard-configuration/xkb-keymap=us <wait>",
+          "<enter><wait>"
+        ]
+
+    }],
+
+    "provisioners": [{
+	"type": "shell",
+	"execute_command": "echo {{user `ssh_pass`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+	"scripts": [
+	  "scripts/vagrant.sh"
+	]
+    }],
+
+    "post-processors": [{
+	"type": "vagrant",
+	  "output": "builds/mm-debian8-packer.box"
+    }]
+}
